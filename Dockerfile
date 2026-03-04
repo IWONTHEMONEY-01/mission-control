@@ -67,13 +67,11 @@ RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf 
 # Verify better-sqlite3 loads AND server.js exists in the runtime image
 RUN node -e "const db = require('better-sqlite3')(':memory:'); db.exec('SELECT 1'); db.close(); console.log('better-sqlite3: OK')"
 RUN test -f server.js && echo "server.js: OK" || (echo "FATAL: server.js not found at /app/server.js" && ls -la && exit 1)
+COPY start.js ./start.js
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
-# Railway injects HOSTNAME=<container-id> at runtime, overriding Docker ENV.
-# Next.js server.js reads HOSTNAME to decide what address to bind to.
-# If it binds to the container hostname instead of 0.0.0.0, the health check
-# can never reach it. Force HOSTNAME=0.0.0.0 in the CMD to prevent this.
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
-CMD ["sh", "-c", "export HOSTNAME=0.0.0.0 && echo '=== Mission Control starting ===' && echo \"Node $(node --version) | PORT=$PORT | HOSTNAME=$HOSTNAME\" && echo \"DB: ${MISSION_CONTROL_DB_PATH:-'.data/mission-control.db (default)'}\" && exec node server.js 2>&1"]
+# Use node directly (no sh wrapper) to avoid env var issues.
+# start.js sets HOSTNAME=0.0.0.0 BEFORE loading server.js, and catches
+# any crash to start a fallback error server for diagnostics.
+CMD ["node", "start.js"]
