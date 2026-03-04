@@ -17,6 +17,24 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 FROM base AS build
 COPY --from=deps /app ./
 RUN pnpm build
+# Next.js standalone may nest output under the project path (e.g. /app/.next/standalone/app/).
+# Detect and flatten so server.js is always at /app/.next/standalone/server.js.
+RUN SERVERJS=$(find /app/.next/standalone -name "server.js" -maxdepth 4 -not -path "*/node_modules/*" | head -1) && \
+    STANDALONE_ROOT=$(dirname "$SERVERJS") && \
+    echo "=== Standalone structure ===" && \
+    echo "server.js found at: $SERVERJS" && \
+    echo "Standalone root: $STANDALONE_ROOT" && \
+    if [ "$STANDALONE_ROOT" != "/app/.next/standalone" ]; then \
+      echo "Flattening nested standalone output..." && \
+      mkdir -p /tmp/standalone-flat && \
+      cp -a "$STANDALONE_ROOT"/. /tmp/standalone-flat/ && \
+      rm -rf /app/.next/standalone && \
+      mv /tmp/standalone-flat /app/.next/standalone && \
+      echo "Flattened. server.js now at: /app/.next/standalone/server.js"; \
+    else \
+      echo "Standalone already flat — no flattening needed."; \
+    fi && \
+    ls -la /app/.next/standalone/server.js
 
 # Collect native deps that pnpm symlinks might hide from standalone trace
 FROM build AS native-collector
@@ -34,7 +52,6 @@ FROM node:20-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
-# Standalone output is flat when WORKDIR=/app in Docker
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 # Copy public directory if it exists (may not exist in all setups)
@@ -47,13 +64,13 @@ COPY --from=native-collector /native/node_modules/ ./node_modules/
 # .data is default, /data is for Railway volume mounts
 RUN mkdir -p .data /data && chown nextjs:nodejs .data /data
 RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
-# Verify better-sqlite3 loads in the runtime image
+# Verify better-sqlite3 loads AND server.js exists in the runtime image
 RUN node -e "const db = require('better-sqlite3')(':memory:'); db.exec('SELECT 1'); db.close(); console.log('better-sqlite3: OK')"
+RUN test -f server.js && echo "server.js: OK" || (echo "FATAL: server.js not found at /app/server.js" && ls -la && exit 1)
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
-# Startup wrapper: log diagnostics to Railway deploy logs, then exec server
-CMD ["sh", "-c", "echo '=== Mission Control starting ===' && echo \"Node $(node --version) | PORT=$PORT | HOSTNAME=$HOSTNAME\" && echo \"DB: ${MISSION_CONTROL_DB_PATH:-'.data/mission-control.db (default)'}\" && exec node server.js 2>&1"]
+CMD ["sh", "-c", "echo '=== Mission Control starting ===' && echo \"Node $(node --version) | PORT=$PORT | HOSTNAME=$HOSTNAME\" && echo \"DB: ${MISSION_CONTROL_DB_PATH:-'.data/mission-control.db (default)'}\" && ls -la server.js && exec node server.js 2>&1"]
