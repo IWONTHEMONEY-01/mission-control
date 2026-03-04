@@ -32,6 +32,10 @@ import { MultiGatewayPanel } from '@/components/panels/multi-gateway-panel'
 import { SuperAdminPanel } from '@/components/panels/super-admin-panel'
 import { OfficePanel } from '@/components/panels/office-panel'
 import { GitHubSyncPanel } from '@/components/panels/github-sync-panel'
+import { FleetOverviewPanel } from '@/components/panels/fleet-overview-panel'
+import { PmPipelinePanel } from '@/components/panels/pm-pipeline-panel'
+import { MondayPanel } from '@/components/panels/monday-panel'
+import { TradingPanel } from '@/components/panels/trading-panel'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LocalModeBanner } from '@/components/layout/local-mode-banner'
@@ -40,6 +44,7 @@ import { PromoBanner } from '@/components/layout/promo-banner'
 import { useWebSocket } from '@/lib/websocket'
 import { useServerEvents } from '@/lib/use-server-events'
 import { useMissionControl } from '@/store'
+import { fetchFleetConfig } from '@/store/fleet-store'
 
 export default function Home() {
   const { connect } = useWebSocket()
@@ -65,6 +70,9 @@ export default function Home() {
       .then(res => res.ok ? res.json() : null)
       .then(data => { if (data?.user) setCurrentUser(data.user) })
       .catch(() => {})
+
+    // Load fleet config
+    fetchFleetConfig()
 
     // Check for available updates
     fetch('/api/releases/check')
@@ -258,6 +266,14 @@ function ContentRouter({ tab }: { tab: string }) {
       return <OfficePanel />
     case 'super-admin':
       return <SuperAdminPanel />
+    case 'fleet':
+      return <FleetOverviewPanel />
+    case 'pm-pipeline':
+      return <PmPipelinePanel />
+    case 'monday':
+      return <MondayPanel />
+    case 'trading':
+      return <TradingPanel />
     default:
       return <Dashboard />
   }

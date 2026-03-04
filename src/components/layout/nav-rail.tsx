@@ -22,6 +22,7 @@ const navGroups: NavGroup[] = [
   {
     id: 'core',
     items: [
+      { id: 'fleet', label: 'Fleet', icon: <FleetIcon />, priority: true },
       { id: 'overview', label: 'Overview', icon: <OverviewIcon />, priority: true },
       { id: 'agents', label: 'Agents', icon: <AgentsIcon />, priority: true, requiresGateway: true },
       { id: 'tasks', label: 'Tasks', icon: <TasksIcon />, priority: true },
@@ -38,6 +39,15 @@ const navGroups: NavGroup[] = [
       { id: 'tokens', label: 'Tokens', icon: <TokensIcon />, priority: false },
       { id: 'agent-costs', label: 'Agent Costs', icon: <AgentCostsIcon />, priority: false },
       { id: 'memory', label: 'Memory', icon: <MemoryIcon />, priority: false },
+    ],
+  },
+  {
+    id: 'data',
+    label: 'DATA',
+    items: [
+      { id: 'pm-pipeline', label: 'Pipeline', icon: <PipelineIcon />, priority: false },
+      { id: 'monday', label: 'Monday', icon: <MondayIcon />, priority: false },
+      { id: 'trading', label: 'Trading', icon: <TradingIcon />, priority: false },
     ],
   },
   {
@@ -633,6 +643,49 @@ function OfficeIcon() {
       <path d="M5 1v3M11 1v3" />
       <rect x="4" y="9" width="3" height="3" rx="0.5" />
       <rect x="9" y="9" width="3" height="3" rx="0.5" />
+    </svg>
+  )
+}
+
+function FleetIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="1" width="5" height="5" rx="1" />
+      <rect x="10" y="1" width="5" height="5" rx="1" />
+      <rect x="1" y="10" width="5" height="5" rx="1" />
+      <rect x="10" y="10" width="5" height="5" rx="1" />
+      <circle cx="3.5" cy="3.5" r="0.75" fill="currentColor" stroke="none" />
+      <circle cx="12.5" cy="3.5" r="0.75" fill="currentColor" stroke="none" />
+      <circle cx="3.5" cy="12.5" r="0.75" fill="currentColor" stroke="none" />
+      <circle cx="12.5" cy="12.5" r="0.75" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function PipelineIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 3h14l-3 5 3 5H1" />
+      <path d="M4 3v10" />
+    </svg>
+  )
+}
+
+function MondayIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="12" height="12" rx="2" />
+      <path d="M5 6v4M8 5v6M11 7v3" />
+    </svg>
+  )
+}
+
+function TradingIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="1,12 4,7 7,9 10,4 15,2" />
+      <polyline points="11,2 15,2 15,6" />
+      <path d="M1 14h14" />
     </svg>
   )
 }

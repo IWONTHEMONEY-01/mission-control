@@ -26,8 +26,9 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 # Copy public directory if it exists (may not exist in all setups)
 COPY --from=build /app/public* ./public/
-# Create data directory with correct ownership for SQLite
-RUN mkdir -p .data && chown nextjs:nodejs .data
+# Create data directories with correct ownership for SQLite
+# .data is default, /data is for Railway volume mounts
+RUN mkdir -p .data /data && chown nextjs:nodejs .data /data
 RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
 USER nextjs
 EXPOSE 3000
