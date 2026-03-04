@@ -70,7 +70,10 @@ RUN test -f server.js && echo "server.js: OK" || (echo "FATAL: server.js not fou
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
+# Railway injects HOSTNAME=<container-id> at runtime, overriding Docker ENV.
+# Next.js server.js reads HOSTNAME to decide what address to bind to.
+# If it binds to the container hostname instead of 0.0.0.0, the health check
+# can never reach it. Force HOSTNAME=0.0.0.0 in the CMD to prevent this.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
-CMD ["sh", "-c", "echo '=== Mission Control starting ===' && echo \"Node $(node --version) | PORT=$PORT | HOSTNAME=$HOSTNAME\" && echo \"DB: ${MISSION_CONTROL_DB_PATH:-'.data/mission-control.db (default)'}\" && ls -la server.js && exec node server.js 2>&1"]
+CMD ["sh", "-c", "export HOSTNAME=0.0.0.0 && echo '=== Mission Control starting ===' && echo \"Node $(node --version) | PORT=$PORT | HOSTNAME=$HOSTNAME\" && echo \"DB: ${MISSION_CONTROL_DB_PATH:-'.data/mission-control.db (default)'}\" && exec node server.js 2>&1"]
