@@ -39,6 +39,8 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 # Copy public directory if it exists (may not exist in all setups)
 COPY --from=build /app/public* ./public/
+# Remove standalone-traced native deps so COPY overlay doesn't conflict
+RUN rm -rf node_modules/better-sqlite3 node_modules/bindings node_modules/file-uri-to-path
 # Overlay native deps — standalone trace can miss pnpm-symlinked native addons
 COPY --from=native-collector /native/node_modules/ ./node_modules/
 # Create data directories with correct ownership for SQLite
