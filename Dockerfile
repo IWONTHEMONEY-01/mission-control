@@ -68,7 +68,6 @@ RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf 
 RUN node -e "const db = require('better-sqlite3')(':memory:'); db.exec('SELECT 1'); db.close(); console.log('better-sqlite3: OK')"
 RUN test -f server.js && echo "server.js: OK" || (echo "FATAL: server.js not found at /app/server.js" && ls -la && exit 1)
 COPY start.js ./start.js
-USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 # Use node directly (no sh wrapper) to avoid env var issues.
