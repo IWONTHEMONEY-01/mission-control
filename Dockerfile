@@ -17,13 +17,15 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 FROM base AS build
 COPY --from=deps /app ./
 RUN pnpm build
+# Diagnostic: show standalone output structure for debugging deploys
+RUN echo "=== Standalone root ===" && ls -la /app/.next/standalone/ && echo "=== server.js check ===" && ls -la /app/.next/standalone/server.js 2>/dev/null || echo "server.js not at root" && echo "=== Checking for nested paths ===" && find /app/.next/standalone/ -name "server.js" -maxdepth 4 2>/dev/null
 
 FROM node:20-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
-# Standalone output nests under the WORKDIR path (e.g. /app/.next/standalone/app/)
-COPY --from=build /app/.next/standalone/app ./
+# Standalone output is flat when WORKDIR=/app in Docker
+COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 # Copy public directory if it exists (may not exist in all setups)
 COPY --from=build /app/public* ./public/
@@ -35,6 +37,6 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 CMD ["node", "server.js"]

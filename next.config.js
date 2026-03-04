@@ -2,6 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   turbopack: {},
+  serverExternalPackages: ['better-sqlite3'],
   
   // Security headers
   async headers() {
