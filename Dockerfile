@@ -22,7 +22,8 @@ FROM node:20-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
-COPY --from=build /app/.next/standalone ./
+# Standalone output nests under the WORKDIR path (e.g. /app/.next/standalone/app/)
+COPY --from=build /app/.next/standalone/app ./
 COPY --from=build /app/.next/static ./.next/static
 # Copy public directory if it exists (may not exist in all setups)
 COPY --from=build /app/public* ./public/
@@ -35,5 +36,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:3000/login || exit 1
+  CMD curl -f http://localhost:3000/api/health || exit 1
 CMD ["node", "server.js"]
