@@ -509,7 +509,11 @@ async function getCapabilities() {
     // credentials file may not exist or be unreadable
   }
 
-  return { gateway, openclawHome, claudeHome, claudeSessions, subscription }
+  // Provide gateway connection details so the browser doesn't need NEXT_PUBLIC_ build-time vars
+  const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || ''
+  const gatewayToken = process.env.NEXT_PUBLIC_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_TOKEN || ''
+
+  return { gateway, openclawHome, claudeHome, claudeSessions, subscription, gatewayUrl, gatewayToken }
 }
 
 function isPortOpen(host: string, port: number): Promise<boolean> {

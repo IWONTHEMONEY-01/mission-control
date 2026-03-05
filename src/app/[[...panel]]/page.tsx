@@ -106,8 +106,10 @@ export default function Home() {
           setGatewayAvailable(true)
         }
         // Connect to gateway WebSocket
-        const wsToken = process.env.NEXT_PUBLIC_GATEWAY_TOKEN || process.env.NEXT_PUBLIC_WS_TOKEN || ''
-        const explicitWsUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || ''
+        // Prefer runtime values from capabilities API (works with Docker builds where
+        // NEXT_PUBLIC_* vars aren't available at build time), fall back to build-time env vars
+        const wsToken = data?.gatewayToken || process.env.NEXT_PUBLIC_GATEWAY_TOKEN || process.env.NEXT_PUBLIC_WS_TOKEN || ''
+        const explicitWsUrl = data?.gatewayUrl || process.env.NEXT_PUBLIC_GATEWAY_URL || ''
         const gatewayPort = process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789'
         const gatewayHost = process.env.NEXT_PUBLIC_GATEWAY_HOST || window.location.hostname
         const gatewayProto =
@@ -117,7 +119,7 @@ export default function Home() {
         connect(wsUrl, wsToken)
       })
       .catch(() => {
-        // If capabilities check fails, still try to connect
+        // If capabilities check fails, still try to connect with build-time env vars
         const wsToken = process.env.NEXT_PUBLIC_GATEWAY_TOKEN || process.env.NEXT_PUBLIC_WS_TOKEN || ''
         const explicitWsUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || ''
         const gatewayPort = process.env.NEXT_PUBLIC_GATEWAY_PORT || '18789'
@@ -126,7 +128,7 @@ export default function Home() {
           process.env.NEXT_PUBLIC_GATEWAY_PROTOCOL ||
           (window.location.protocol === 'https:' ? 'wss' : 'ws')
         const wsUrl = explicitWsUrl || `${gatewayProto}://${gatewayHost}:${gatewayPort}`
-        connect(wsUrl, wsToken)
+        if (wsUrl) connect(wsUrl, wsToken)
       })
   }, [connect, setCurrentUser, setDashboardMode, setGatewayAvailable, setSubscription, setUpdateAvailable])
 
