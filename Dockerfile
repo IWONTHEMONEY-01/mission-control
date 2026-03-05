@@ -63,7 +63,7 @@ COPY --from=native-collector /native/node_modules/ ./node_modules/
 # Create data directories with correct ownership for SQLite
 # .data is default, /data is for Railway volume mounts
 RUN mkdir -p .data /data && chown nextjs:nodejs .data /data
-RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl procps --no-install-recommends && rm -rf /var/lib/apt/lists/*
 # Verify better-sqlite3 loads AND server.js exists in the runtime image
 RUN node -e "const db = require('better-sqlite3')(':memory:'); db.exec('SELECT 1'); db.close(); console.log('better-sqlite3: OK')"
 RUN test -f server.js && echo "server.js: OK" || (echo "FATAL: server.js not found at /app/server.js" && ls -la && exit 1)
