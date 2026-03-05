@@ -16,6 +16,16 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 
 FROM base AS build
 COPY --from=deps /app ./
+# Railway injects env vars at runtime, not build time (for Dockerfile builds).
+# NEXT_PUBLIC_* vars must be available during `pnpm build` so Next.js can inline
+# them into the client JS bundle. Declare them as ARGs so Railway passes them in.
+ARG NEXT_PUBLIC_GATEWAY_URL
+ARG NEXT_PUBLIC_GATEWAY_TOKEN
+ARG NEXT_PUBLIC_GATEWAY_HOST
+ARG NEXT_PUBLIC_GATEWAY_PORT
+ARG NEXT_PUBLIC_GATEWAY_PROTOCOL
+ARG NEXT_PUBLIC_COORDINATOR_AGENT
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
 RUN pnpm build
 # Next.js standalone may nest output under the project path (e.g. /app/.next/standalone/app/).
 # Detect and flatten so server.js is always at /app/.next/standalone/server.js.
