@@ -69,7 +69,7 @@ async function probeGateway(bot: { id: string; name: string; httpUrl: string; to
       result.error = 'Connection timed out (5s)'
     } else {
       result.status = 'offline'
-      result.error = err.message || 'Connection failed'
+      result.error = `${err.message || 'Connection failed'} (${bot.httpUrl}/health)`
     }
   }
 
