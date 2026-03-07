@@ -35,11 +35,11 @@ async function probeGateway(bot: { id: string; name: string; httpUrl: string; to
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 5000)
 
-    // OpenClaw gateway exposes /health or /api/status endpoints
+    // OpenClaw gateway serves its control UI at the root path
     const headers: Record<string, string> = {}
     if (bot.token) headers['Authorization'] = `Bearer ${bot.token}`
 
-    const res = await fetch(`${bot.httpUrl}/health`, {
+    const res = await fetch(`${bot.httpUrl}/`, {
       signal: controller.signal,
       headers,
     })
@@ -69,7 +69,7 @@ async function probeGateway(bot: { id: string; name: string; httpUrl: string; to
       result.error = 'Connection timed out (5s)'
     } else {
       result.status = 'offline'
-      result.error = `${err.message || 'Connection failed'} (${bot.httpUrl}/health)`
+      result.error = `${err.message || 'Connection failed'} (${bot.httpUrl}/)`
     }
   }
 
