@@ -78,7 +78,8 @@ export function useWebSocket() {
       normalized.includes('device identity required') ||
       normalized.includes('device_auth_signature_invalid') ||
       normalized.includes('auth rate limit') ||
-      normalized.includes('rate limited')
+      normalized.includes('rate limited') ||
+      normalized.includes('pairing required')
     )
   }, [])
 
@@ -96,6 +97,9 @@ export function useWebSocket() {
     }
     if (normalized.includes('auth rate limit') || normalized.includes('rate limited')) {
       return 'Gateway authentication is rate limited. Wait briefly, then reconnect.'
+    }
+    if (normalized.includes('pairing required')) {
+      return 'Gateway requires device pairing. Approve this device on the gateway or check that the gateway token is correct.'
     }
     return 'Gateway handshake failed. Check gateway control UI origin and device identity settings, then reconnect.'
   }, [])
@@ -360,7 +364,8 @@ export function useWebSocket() {
 
     // Handle connect error
     if (frame.type === 'res' && !frame.ok) {
-      console.error('Gateway error:', frame.error)
+      const gwUrl = reconnectUrl.current || 'unknown'
+      console.error('Gateway error:', frame.error, 'url:', gwUrl)
       const rawMessage = frame.error?.message || JSON.stringify(frame.error)
       const help = getGatewayErrorHelp(rawMessage)
       const nonRetryable = isNonRetryableGatewayError(rawMessage)
@@ -370,7 +375,7 @@ export function useWebSocket() {
         timestamp: Date.now(),
         level: 'error',
         source: 'gateway',
-        message: `Gateway error: ${rawMessage}${nonRetryable ? ` — ${help}` : ''}`
+        message: `Gateway error [${gwUrl}]: ${rawMessage}${nonRetryable ? ` — ${help}` : ''}`
       })
 
       if (nonRetryable) {
@@ -380,7 +385,7 @@ export function useWebSocket() {
           recipient: 'operator',
           type: 'error',
           title: 'Gateway Handshake Blocked',
-          message: help,
+          message: `[${gwUrl}] ${help}`,
           created_at: Math.floor(Date.now() / 1000),
         })
 
@@ -574,13 +579,13 @@ export function useWebSocket() {
       }
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error)
+        console.error('WebSocket error:', error, 'url:', url)
         addLog({
           id: `error-${Date.now()}`,
           timestamp: Date.now(),
           level: 'error',
           source: 'websocket',
-          message: `WebSocket error occurred`
+          message: `WebSocket error [${url.split('?')[0]}]`
         })
       }
 
