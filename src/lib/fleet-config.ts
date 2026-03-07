@@ -7,7 +7,7 @@
  *   GATEWAY_<ID>_TOKEN = auth-token
  *   GATEWAY_<ID>_NAME  = Human-readable name (optional, defaults to ID)
  *
- * Pre-configured IDs: GENERAL, QUANT, MARKETING
+ * Pre-configured IDs: GENERAL, QUANT, MARKETING, METRICS
  */
 
 export interface BotConfig {
@@ -26,7 +26,7 @@ export interface BotConfigPublic {
   configured: boolean
 }
 
-const BOT_IDS = ['GENERAL', 'QUANT', 'MARKETING'] as const
+const BOT_IDS = ['GENERAL', 'QUANT', 'MARKETING', 'METRICS'] as const
 
 function wsToHttp(wsUrl: string): string {
   return wsUrl
