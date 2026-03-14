@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 
 interface LegFairOdds {
   ticker: string
+  side?: string
   fair_prob?: number
   fair_american?: number
   fair_prob_no?: number
@@ -269,17 +270,25 @@ export function TradingPanel() {
                 {expandedPos === i && p.trade_leg_fair_odds && p.trade_leg_fair_odds.length > 0 && (
                   <div className="border-t border-border bg-secondary/20 px-3 py-2 space-y-1">
                     <div className="text-2xs text-muted-foreground font-medium mb-1">Per-Leg Fair Odds at Trade</div>
-                    {p.trade_leg_fair_odds.map((leg, j) => (
+                    {p.trade_leg_fair_odds.map((leg, j) => {
+                      const legSide = leg.side || 'yes'
+                      const fmtOdds = (v?: number) => v == null ? '-' : (v > 0 ? `+${v}` : `${v}`)
+                      return (
                       <div key={j} className="flex items-center justify-between text-2xs font-mono">
-                        <span className="text-foreground/80 truncate max-w-[200px]">{leg.ticker}</span>
+                        <div className="flex items-center gap-1.5 truncate max-w-[220px]">
+                          <span className={`px-1 py-0.5 rounded text-[10px] font-bold ${
+                            legSide === 'yes' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                          }`}>{legSide.toUpperCase()}</span>
+                          <span className="text-foreground/80 truncate">{leg.ticker}</span>
+                        </div>
                         <div className="flex gap-3">
                           {leg.fair_prob != null ? (
                             <>
-                              <span className="text-green-400">
-                                YES {(leg.fair_prob * 100).toFixed(1)}% ({leg.fair_american != null ? (leg.fair_american > 0 ? `+${leg.fair_american}` : leg.fair_american) : '-'})
+                              <span className={legSide === 'yes' ? 'text-green-400 font-semibold' : 'text-green-400/60'}>
+                                YES {(leg.fair_prob * 100).toFixed(1)}% ({fmtOdds(leg.fair_american)})
                               </span>
-                              <span className="text-red-400">
-                                NO {((leg.fair_prob_no ?? (1 - leg.fair_prob)) * 100).toFixed(1)}% ({leg.fair_american_no != null ? (leg.fair_american_no > 0 ? `+${leg.fair_american_no}` : leg.fair_american_no) : '-'})
+                              <span className={legSide === 'no' ? 'text-red-400 font-semibold' : 'text-red-400/60'}>
+                                NO {((leg.fair_prob_no ?? (1 - leg.fair_prob)) * 100).toFixed(1)}% ({fmtOdds(leg.fair_american_no)})
                               </span>
                             </>
                           ) : (
@@ -287,7 +296,7 @@ export function TradingPanel() {
                           )}
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 )}
               </div>
